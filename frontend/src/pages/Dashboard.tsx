@@ -1,7 +1,9 @@
+import { useState } from 'react'; 
 import { Plus } from 'lucide-react';
-// İleride buraya GanttChart ve RiskPanel import edilecek
+import TaskFormModal from '../components/tasks/TaskFormModal';
 
 const Dashboard = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="space-y-6">
       {/* Üst Başlık */}
@@ -10,7 +12,10 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-800">Proje Panosu</h1>
           <p className="text-gray-500 mt-1">Görevlerinizi ve analizleri buradan yönetin.</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-sm transition-colors">
+        <button 
+          onClick={() => setIsModalOpen(true)} 
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-sm transition-colors"
+        >
           <Plus size={18} /> Yeni Görev Ekle
         </button>
       </div>
@@ -40,6 +45,10 @@ const Dashboard = () => {
           AI Risk Analizi
         </div>
       </div>
+      <TaskFormModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };
