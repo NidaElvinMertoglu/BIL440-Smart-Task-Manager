@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 from routes.tasks import router as task_router
+from routes.auth import router as auth_router
 
 app = FastAPI(title="Smart Task Manager API")
 
@@ -17,3 +18,4 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 app.include_router(task_router)
+app.include_router(auth_router)
