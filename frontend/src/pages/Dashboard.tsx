@@ -6,10 +6,13 @@ import AISuggestions from '../components/analysis/AISuggestions';
 import TaskFormModal from '../components/tasks/TaskFormModal';
 import GanttChart from '../components/tasks/GanttChart';
 import { MOCK_TASKS } from '../mockData';
+import { LayoutGrid, List } from 'lucide-react';
+import TaskCard from '../components/tasks/TaskCard'; 
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const tasks = MOCK_TASKS; 
+  const tasks = MOCK_TASKS;
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   return (
     <div className="space-y-6">
@@ -49,11 +52,37 @@ const Dashboard = () => {
 
       {/* 5. GÖREV LİSTESİ */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-         <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-700">Görev Listesi</h2>
-            <button className="text-sm text-blue-600 hover:underline">Tümünü Gör</button>
+         
+         <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-700">Görevler</h2>
+            
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="Liste Görünümü"
+              >
+                <List size={18} />
+              </button>
+              <button 
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                title="Kart Görünümü"
+              >
+                <LayoutGrid size={18} />
+              </button>
+            </div>
          </div>
-         <TaskList tasks={tasks} />
+
+         {viewMode === 'list' ? (
+           <TaskList tasks={tasks} />
+         ) : (
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+             {tasks.map(task => (
+               <TaskCard key={task.id} task={task} />
+             ))}
+           </div>
+         )}
       </div>
 
       {/* MODAL */}
