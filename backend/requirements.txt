@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy
 pydantic
 pytest
+passlib[bcrypt]
+python-multipart
