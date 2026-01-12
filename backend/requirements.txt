@@ -5,3 +5,5 @@ pydantic
 pytest
 passlib[bcrypt]
 python-multipart
+email-validator
+
