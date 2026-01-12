@@ -23,3 +23,11 @@ class Task(Base):
     is_risk = Column(Boolean, default=False)
     risk_message = Column(String, nullable=True)
     ai_suggestion = Column(String, nullable=True)
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
