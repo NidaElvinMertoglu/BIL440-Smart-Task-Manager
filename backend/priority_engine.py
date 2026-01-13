@@ -1,8 +1,8 @@
 from datetime import datetime
 
 def analyze_task_risk(task):
-    now = datetime.now()
-    days_left = (task.due_date - now).days
+    now = datetime.utcnow()
+    days_left = (task.due_date.replace(tzinfo=None) - now).days
 
     if days_left < 0:
         return True, "Deadline passed", "Reschedule the task"
