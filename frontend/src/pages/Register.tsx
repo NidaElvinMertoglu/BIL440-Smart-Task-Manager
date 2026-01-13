@@ -1,21 +1,29 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { registerUser } from '../api/authApi';
+import type { UserCreate, Token } from '../types/auth';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { register, handleSubmit, formState: { errors } } = useForm<UserCreate>();
+  const auth = useAuth(); 
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Simüle edilmiş kayıt işlemi
-    setTimeout(() => {
-      setIsLoading(false);
-      // Başarılı olursa Login'e yönlendir
-      navigate('/login');
-    }, 1500);
+  const mutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: (data: Token) => { // Token gelir
+      auth.login(data.access_token); // Başarılı giriş yapar
+      navigate('/');
+    },
+    onError: (error: any) => {
+      alert("Kayıt sırasında bir hata oluştu: " + (error.response?.data?.detail || error.message));
+    }
+  });
+
+  const onSubmit = (data: UserCreate) => {
+    mutation.mutate(data);
   };
 
   return (
@@ -33,7 +41,7 @@ const Register = () => {
           <p className="text-gray-500 mt-2 text-sm">Proje yönetimine hemen başla.</p>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Ad Soyad */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label>
@@ -41,10 +49,11 @@ const Register = () => {
               <User className="absolute left-3 top-3 text-gray-400" size={18} />
               <input 
                 type="text" 
-                required 
+                {...register('full_name', { required: "Ad soyad zorunludur" })}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                 placeholder="Örn: Mert Yılmaz" 
               />
+              {errors.full_name && <span className="text-xs text-red-500">{errors.full_name.message}</span>}
             </div>
           </div>
 
@@ -55,10 +64,11 @@ const Register = () => {
               <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
               <input 
                 type="email" 
-                required 
+                {...register('email', { required: "E-posta zorunludur", pattern: /^\S+@\S+$/i })}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                 placeholder="ornek@sirket.com" 
               />
+              {errors.email && <span className="text-xs text-red-500">{errors.email.message}</span>}
             </div>
           </div>
 
@@ -69,32 +79,20 @@ const Register = () => {
               <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
               <input 
                 type="password" 
-                required 
+                {...register('password', { required: "Şifre zorunludur", minLength: 6 })}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
                 placeholder="••••••••" 
               />
-            </div>
-          </div>
-
-          {/* Şifre Tekrar */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Şifre Tekrar</label>
-            <div className="relative">
-              <CheckCircle className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input 
-                type="password" 
-                required 
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-                placeholder="••••••••" 
-              />
+              {errors.password && <span className="text-xs text-red-500">{errors.password.message}</span>}
             </div>
           </div>
 
           <button 
-            disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg shadow-blue-200"
+            type="submit"
+            disabled={mutation.isPending}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all mt-6 shadow-lg shadow-blue-200 disabled:bg-blue-300"
           >
-            {isLoading ? 'Kaydediliyor...' : <>Kayıt Ol <ArrowRight size={18} /></>}
+            {mutation.isPending ? 'Kaydediliyor...' : <>Kayıt Ol <ArrowRight size={18} /></>}
           </button>
         </form>
 
