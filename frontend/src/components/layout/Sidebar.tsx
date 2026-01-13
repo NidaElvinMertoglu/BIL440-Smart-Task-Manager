@@ -1,7 +1,14 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, User, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
+  const auth = useAuth();
+
+  const handleLogout = () => {
+    auth.logout();
+  };
+
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex flex-col hidden md:flex">
       {/* Logo Alanı */}
@@ -20,7 +27,10 @@ const Sidebar = () => {
 
       {/* Alt Kısım */}
       <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full text-sm font-medium transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full text-sm font-medium transition-colors"
+        >
           <LogOut size={20} /> Çıkış Yap
         </button>
       </div>
