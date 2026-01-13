@@ -1,19 +1,60 @@
 import { Link } from 'react-router-dom';
 import { Calendar, AlertCircle, ArrowRight } from 'lucide-react';
-
-interface Task { id: string; title: string; priority: string; due_date: string; is_risk: boolean; }
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateTask } from '../../api/taskApi';
+import type { Task } from '../../types';
 
 interface TaskListProps {
-  tasks: any[]; 
+  tasks: Task[]; 
 }
 
 const TaskList = ({ tasks }: TaskListProps) => {
+  const queryClient = useQueryClient();
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<Task> }) => updateTask(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+    onError: (error) => {
+      alert(`Görev güncellenirken bir hata oluştu: ${error.message}`);
+    }
+  });
+
+  const handleToggleComplete = (task: Task, isChecked: boolean) => {
+    if (isChecked) { // Trying to mark as complete
+      if (task.dependencies && task.dependencies.length > 0) {
+        const incompleteDependencies = task.dependencies.filter(depId => {
+          const dependencyTask = tasks.find(t => t.id.toString() === depId);
+          return dependencyTask && dependencyTask.progress !== 100;
+        });
+
+        if (incompleteDependencies.length > 0) {
+          alert(`Bu görevi tamamlamak için önce bağımlı olduğu görevleri bitirmelisiniz:\n${
+            incompleteDependencies.map(depId => {
+              const depTask = tasks.find(t => t.id.toString() === depId);
+              return depTask ? `- ${depTask.title}` : `- Bilinmeyen Görev (${depId})`;
+            }).join('\n')
+          }`);
+          return; // Prevent update
+        }
+      }
+    }
+
+    const updatedTaskPayload = {
+      ...task,
+      progress: isChecked ? 100 : 0,
+    };
+    updateTaskMutation.mutate({ id: task.id, data: updatedTaskPayload });
+  };
+  
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
           <tr>
-            <th className="px-4 py-3 rounded-tl-lg">Görev Adı</th>
+            <th className="px-4 py-3 rounded-tl-lg w-12"></th>
+            <th className="px-4 py-3">Görev Adı</th>
             <th className="px-4 py-3">Öncelik</th>
             <th className="px-4 py-3">Durum</th>
             <th className="px-4 py-3">Bitiş Tarihi</th>
@@ -22,13 +63,22 @@ const TaskList = ({ tasks }: TaskListProps) => {
         </thead>
         <tbody className="divide-y divide-gray-100 text-sm">
           {tasks.map((task) => (
-            <tr key={task.id} className="hover:bg-gray-50 transition-colors group">
+            <tr key={task.id} className={`hover:bg-gray-50 transition-colors group ${task.progress === 100 ? 'bg-green-50' : ''}`}>
               
+              <td className="px-4 py-3">
+                <input 
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  checked={task.progress === 100}
+                  onChange={(e) => handleToggleComplete(task, e.target.checked)}
+                />
+              </td>
+
               {/* 1. Görev Adı ve Risk İkonu */}
               <td className="px-4 py-3 font-medium text-gray-900">
-                <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 ${task.progress === 100 ? 'text-gray-400 line-through' : ''}`}>
                   {task.title}
-                  {task.is_risk && (
+                  {task.is_risk && task.progress < 100 && (
                     <span className="text-red-500" title="Gecikme Riski">
                       <AlertCircle size={16} />
                     </span>
@@ -39,6 +89,7 @@ const TaskList = ({ tasks }: TaskListProps) => {
               {/* 2. Öncelik Badge */}
               <td className="px-4 py-3">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                  task.progress === 100 ? 'bg-gray-100 text-gray-500 border-gray-200' :
                   task.priority === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                   task.priority === 'medium' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                   'bg-green-50 text-green-700 border-green-200'
@@ -52,7 +103,7 @@ const TaskList = ({ tasks }: TaskListProps) => {
                 <div className="flex items-center gap-2">
                   <div className="w-16 bg-gray-200 rounded-full h-1.5">
                     <div 
-                      className="bg-blue-600 h-1.5 rounded-full" 
+                      className={`${task.progress === 100 ? 'bg-green-500' : 'bg-blue-600'} h-1.5 rounded-full`}
                       style={{ width: `${task.progress}%` }}
                     ></div>
                   </div>
@@ -61,7 +112,7 @@ const TaskList = ({ tasks }: TaskListProps) => {
               </td>
 
               {/* 4. Tarih */}
-              <td className="px-4 py-3 text-gray-500">
+              <td className={`px-4 py-3 text-gray-500 ${task.progress === 100 ? 'line-through' : ''}`}>
                 <div className="flex items-center gap-1">
                   <Calendar size={14} className="text-gray-400" />
                   {new Date(task.due_date).toLocaleDateString('tr-TR')}
