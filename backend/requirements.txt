@@ -4,6 +4,6 @@ sqlalchemy
 pydantic
 pytest
 passlib[bcrypt]
+python-jose[pycryptodome]
 python-multipart
 email-validator
-
