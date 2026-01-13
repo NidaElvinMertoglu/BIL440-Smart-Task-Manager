@@ -1,7 +1,8 @@
 import { Calendar, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Task } from '../../types';
 
-const TaskCard = ({ task }: { task: any }) => {
+const TaskCard = ({ task }: { task: Task }) => {
   return (
     <Link to={`/tasks/${task.id}`} className="block">
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer h-full">
