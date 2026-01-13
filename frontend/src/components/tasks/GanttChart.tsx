@@ -8,8 +8,15 @@ interface Props {
 }
 
 const SmartGantt: React.FC<Props> = ({ tasks }) => {
-  
-  // 1. Bizim veriyi -> Kütüphanenin formatına çeviriyoruz
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="text-center text-gray-400 py-8">
+        Gantt şeması için henüz görev oluşturulmadı.
+      </div>
+    );
+  }
+
+  // 1. Bizim veriyi kütüphanenin formatına çeviriyoruz
   const ganttTasks: Task[] = tasks.map((t) => {
     
     // RENK MANTIĞI: Risk varsa KIRMIZI, yoksa önceliğe göre renk
